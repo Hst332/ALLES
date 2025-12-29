@@ -66,7 +66,7 @@ def run_gas_forecast():
     return {
         "asset": "NATURAL GAS",
         "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "data_date": last.name.date().isoformat(),
+        "data_date": last.index[0].date().isoformat(),
         "prob_up": prob_up,
         "prob_down": 1 - prob_up,
         "signal": signal,

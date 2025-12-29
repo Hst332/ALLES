@@ -53,7 +53,8 @@ def run_gas_forecast():
     if last["trend_20"].iloc[0]:
         prob_up += 0.05
 
-    prob_up = model.predict_proba(last[features].to_frame().T)[0][1]
+    prob_up = model.predict_proba(last[features])[0][1]
+
 
     if prob_up >= UP_THRESHOLD:
         signal = "UP"

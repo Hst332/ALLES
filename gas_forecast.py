@@ -1,77 +1,39 @@
-#!/usr/bin/env python3
-"""
-CODE A – Natural Gas Forecast
-"""
-
-import numpy as np
+# gas_forecast.py
+import yfinance as yf
 import pandas as pd
 from datetime import datetime
-import yfinance as yf
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import accuracy_score
 
 START_DATE = "2014-01-01"
 GAS_SYMBOL = "NG=F"
 
-UP_THRESHOLD = 0.60
-DOWN_THRESHOLD = 0.40
-
-
-def load_gas_prices():
+def run_gas_forecast():
     df = yf.download(GAS_SYMBOL, start=START_DATE, auto_adjust=True, progress=False)
-    df = df[["Close"]].rename(columns={"Close": "Gas_Close"})
-    df.dropna(inplace=True)
-    return df
+    df = df[["Close"]].rename(columns={"Close": "Gas_Close"}).dropna()
 
-
-def build_features(df):
-    df = df.copy()
+    df["trend_20"] = df["Gas_Close"] > df["Gas_Close"].rolling(20).mean()
     df["ret"] = df["Gas_Close"].pct_change()
-    df["trend_5"] = df["Gas_Close"].pct_change(5)
-    df["trend_20"] = df["Gas_Close"].pct_change(20)
-    df["vol_10"] = df["ret"].rolling(10).std()
-    df["Target"] = (df["ret"].shift(-1) > 0).astype(int)
-    df.dropna(inplace=True)
-    return df
+    df = df.dropna()
 
+    last = df.iloc[-1]
 
-def train_and_predict():
-    prices = load_gas_prices()
-    df = build_features(prices)
+    prob_up = 0.50
+    if last["trend_20"]:
+        prob_up += 0.10
 
-    features = ["trend_5", "trend_20", "vol_10"]
-    X = df[features]
-    y = df["Target"]
+    prob_up = min(max(prob_up, 0.0), 1.0)
 
-    tscv = TimeSeriesSplit(5)
-    acc = []
-
-    for tr, te in tscv.split(X):
-        m = LogisticRegression(max_iter=200)
-        m.fit(X.iloc[tr], y.iloc[tr])
-        acc.append(accuracy_score(y.iloc[te], m.predict(X.iloc[te])))
-
-    model = LogisticRegression(max_iter=200)
-    model.fit(X, y)
-
-    last = df.iloc[-1:]
-    prob_up = model.predict_proba(last[features])[0][1]
-
-    if prob_up >= UP_THRESHOLD:
+    if prob_up >= 0.60:
         signal = "UP"
-    elif prob_up <= DOWN_THRESHOLD:
+    elif prob_up <= 0.40:
         signal = "DOWN"
     else:
         signal = "NO_TRADE"
 
     return {
-        "section": "NATURAL GAS FORECAST – CODE A",
         "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "data_date": last.index[0].date().isoformat(),
+        "data_date": last.name.date().isoformat(),
         "prob_up": prob_up,
         "prob_down": 1 - prob_up,
         "signal": signal,
-        "cv_mean": np.mean(acc),
-        "cv_std": np.std(acc),
+        "price": float(last["Gas_Close"]),
     }

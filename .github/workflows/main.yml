@@ -1,0 +1,7 @@
+from gas_forecast import run_gas_forecast
+from oil_forecast import run_oil_forecast
+
+if __name__ == "__main__":
+    run_gas_forecast()
+    run_oil_forecast()
+    print("[OK] Gas & Oil forecasts completed")

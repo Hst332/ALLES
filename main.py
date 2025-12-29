@@ -24,8 +24,12 @@ def main():
                 f.write(f"Model CV      : {res['cv_mean']:.2%} ± {res['cv_std']:.2%}\n")
             f.write("-----------------------------------\n")
 
-    print("[OK] combined_forecast.txt created")
-
+    with open("forecast_combined.txt", "w", encoding="utf-8") as f:
+        f.write(gas_txt)
+        f.write("\n\n")
+        f.write(oil_txt)
+    
+    print("[OK] forecast_combined.txt created")
 
 if __name__ == "__main__":
     main()

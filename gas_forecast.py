@@ -46,7 +46,7 @@ def run_gas_forecast():
     model = LogisticRegression(max_iter=200)
     model.fit(X, y)
 
-    last = df.iloc[-1]
+    last = df.iloc[-1:]
 
     prob_up = 0.50
     

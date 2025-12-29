@@ -46,7 +46,13 @@ def run_gas_forecast():
     model = LogisticRegression(max_iter=200)
     model.fit(X, y)
 
-    last = df.iloc[-1]
+    last = df.iloc[-1:]
+
+    prob_up = 0.50
+    
+    if last["trend_20"].iloc[0]:
+        prob_up += 0.05
+
     prob_up = model.predict_proba(last[features].to_frame().T)[0][1]
 
     if prob_up >= UP_THRESHOLD:

@@ -1,7 +1,31 @@
-from gas_forecast import run_gas_forecast
-from oil_forecast import run_oil_forecast
+name: Forecast Runner
 
-if __name__ == "__main__":
-    run_gas_forecast()
-    run_oil_forecast()
-    print("[OK] Gas & Oil forecasts completed")
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  run-forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run forecast
+        run: python main.py
+
+      - name: Commit results
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add combined_forecast.txt
+          git commit -m "Update combined forecast" || echo "No changes"
+          git push

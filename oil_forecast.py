@@ -1,11 +1,17 @@
-# oil_forecast.py
+#!/usr/bin/env python3
+"""
+CODE A – Oil Forecast (Brent + WTI + Spread)
+"""
+
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
 
+
 START_DATE = "2015-01-01"
 SYMBOL_BRENT = "BZ=F"
 SYMBOL_WTI = "CL=F"
+
 
 def run_oil_forecast():
     brent = yf.download(SYMBOL_BRENT, start=START_DATE, progress=False)
@@ -24,7 +30,7 @@ def run_oil_forecast():
         / df["Spread"].rolling(60).std()
     )
 
-    df = df.dropna()
+    df.dropna(inplace=True)
     last = df.iloc[-1]
 
     prob_up = 0.50
@@ -35,7 +41,7 @@ def run_oil_forecast():
     elif last["Spread_Z"] < -0.5:
         prob_up -= 0.03
 
-    prob_up = min(max(prob_up, 0.0), 1.0)
+    prob_up = max(0.0, min(1.0, prob_up))
 
     if prob_up >= 0.57:
         signal = "UP"
@@ -45,12 +51,10 @@ def run_oil_forecast():
         signal = "NO_TRADE"
 
     return {
+        "asset": "OIL (BRENT+WTI)",
         "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
         "data_date": last.name.date().isoformat(),
         "prob_up": prob_up,
         "prob_down": 1 - prob_up,
         "signal": signal,
-        "brent": float(last["Brent"]),
-        "wti": float(last["WTI"]),
-        "spread": float(last["Spread"]),
     }

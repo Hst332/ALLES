@@ -1,12 +1,12 @@
-name: Forecast Runner
+name: Energy Forecast
 
 on:
-  schedule:
-    - cron: "0 7 * * *"
   workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *"
 
 jobs:
-  run-forecast:
+  run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,10 @@ jobs:
       - name: Run forecast
         run: python main.py
 
-      - name: Commit results
+      - name: Commit output
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add combined_forecast.txt
-          git commit -m "Update combined forecast" || echo "No changes"
+          git add forecast_combined.txt
+          git commit -m "Update energy forecast" || echo "No changes"
           git push

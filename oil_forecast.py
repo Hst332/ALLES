@@ -1,3 +1,4 @@
+# oil_forecast.py
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
@@ -10,9 +11,6 @@ def run_oil_forecast():
     brent = yf.download(SYMBOL_BRENT, start=START_DATE, progress=False)
     wti = yf.download(SYMBOL_WTI, start=START_DATE, progress=False)
 
-    if brent.empty or wti.empty:
-        raise RuntimeError("Oil data download failed")
-
     df = pd.DataFrame(index=brent.index)
     df["Brent"] = brent["Close"]
     df["WTI"] = wti["Close"]
@@ -20,15 +18,39 @@ def run_oil_forecast():
 
     df["Brent_Trend"] = df["Brent"] > df["Brent"].rolling(20).mean()
     df["WTI_Trend"] = df["WTI"] > df["WTI"].rolling(20).mean()
-
     df["Spread"] = df["Brent"] - df["WTI"]
     df["Spread_Z"] = (
         (df["Spread"] - df["Spread"].rolling(60).mean())
         / df["Spread"].rolling(60).std()
     )
 
-    df.dropna(inplace=True)
+    df = df.dropna()
     last = df.iloc[-1]
 
     prob_up = 0.50
-    if last["Brent_Trend"] and last["WT
+    if last["Brent_Trend"] and last["WTI_Trend"]:
+        prob_up += 0.07
+    if last["Spread_Z"] > 0.5:
+        prob_up += 0.03
+    elif last["Spread_Z"] < -0.5:
+        prob_up -= 0.03
+
+    prob_up = min(max(prob_up, 0.0), 1.0)
+
+    if prob_up >= 0.57:
+        signal = "UP"
+    elif prob_up <= 0.43:
+        signal = "DOWN"
+    else:
+        signal = "NO_TRADE"
+
+    return {
+        "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "data_date": last.name.date().isoformat(),
+        "prob_up": prob_up,
+        "prob_down": 1 - prob_up,
+        "signal": signal,
+        "brent": float(last["Brent"]),
+        "wti": float(last["WTI"]),
+        "spread": float(last["Spread"]),
+    }

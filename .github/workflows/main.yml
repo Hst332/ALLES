@@ -1,9 +1,9 @@
 name: Energy Forecast
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "30 6 * * *"
+    - cron: '0 6 * * *'   # 06:00 UTC = 07:00 Wien
+  workflow_dispatch:
 
 jobs:
   run:
@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -22,10 +22,10 @@ jobs:
       - name: Run forecast
         run: python main.py
 
-      - name: Commit output
+      - name: Commit results
         run: |
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add forecast_combined.txt
-          git commit -m "Update energy forecast" || echo "No changes"
+          git config user.email "github-actions@github.com"
+          git add *.txt *.csv
+          git commit -m "Daily forecast update" || echo "No changes"
           git push

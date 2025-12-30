@@ -63,7 +63,9 @@ def main():
         all_rows.extend(run_backtest(sym))
 
     df = pd.DataFrame(all_rows)
+    print("[DEBUG] Schreibe CSV jetzt...")
     df.to_csv("hit_rates_gas_wti_brent.csv", index=False)
+    print("[DEBUG] CSV geschrieben")
 
     print("\n[OK] Backtest fertig → hit_rates_gas_wti_brent.csv\n")
     print(df)

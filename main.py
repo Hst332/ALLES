@@ -1,70 +1,33 @@
 #!/usr/bin/env python3
-"""
-CODE A – Natural Gas Forecast
-Stabil. Getestet. Serien-sicher.
-"""
 
-import numpy as np
-import pandas as pd
-from datetime import datetime
-import yfinance as yf
+from gas_forecast import run_gas_forecast
+from oil_forecast import run_oil_forecast
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import accuracy_score
-
-START_DATE = "2014-01-01"
-GAS_SYMBOL = "NG=F"
-
-UP_THRESHOLD = 0.60
-DOWN_THRESHOLD = 0.40
+OUTPUT = "forecast_combined.txt"
 
 
-def run_gas_forecast():
-    df = yf.download(GAS_SYMBOL, start=START_DATE, auto_adjust=True, progress=False)
-    df = df[["Close"]].rename(columns={"Close": "Gas_Close"})
-    df.dropna(inplace=True)
+def main():
+    gas = run_gas_forecast()
+    oil = run_oil_forecast()
 
-    df["ret"] = df["Gas_Close"].pct_change()
-    df["trend_5"] = df["Gas_Close"].pct_change(5)
-    df["trend_20"] = df["Gas_Close"].pct_change(20)
-    df["vol_10"] = df["ret"].rolling(10).std()
+    with open(OUTPUT, "w", encoding="utf-8") as f:
+        f.write("===================================\n")
+        f.write("   COMBINED ENERGY FORECAST – CODE A\n")
+        f.write("===================================\n\n")
 
-    df["Target"] = (df["ret"].shift(-1) > 0).astype(int)
-    df.dropna(inplace=True)
+        for r in (gas, oil):
+            f.write(f"{r['section']}\n")
+            f.write("-----------------------------------\n")
+            f.write(f"Run time (UTC): {r['run_time']}\n")
+            f.write(f"Data date     : {r['data_date']}\n\n")
+            f.write(f"Prob UP       : {r['prob_up']:.2%}\n")
+            f.write(f"Prob DOWN     : {r['prob_down']:.2%}\n")
+            f.write(f"Signal        : {r['signal']}\n\n")
 
-    features = ["trend_5", "trend_20", "vol_10"]
-    X = df[features]
-    y = df["Target"]
+        f.write("===================================\n")
 
-    tscv = TimeSeriesSplit(5)
-    acc = []
+    print("[OK] forecast_combined.txt created")
 
-    for tr, te in tscv.split(X):
-        m = LogisticRegression(max_iter=200)
-        m.fit(X.iloc[tr], y.iloc[tr])
-        acc.append(accuracy_score(y.iloc[te], m.predict(X.iloc[te])))
 
-    model = LogisticRegression(max_iter=200)
-    model.fit(X, y)
-
-    last = X.iloc[[-1]]  # <<< WICHTIG: DataFrame, kein Series
-    prob_up = model.predict_proba(last)[0][1]
-
-    if prob_up >= UP_THRESHOLD:
-        signal = "UP"
-    elif prob_up <= DOWN_THRESHOLD:
-        signal = "DOWN"
-    else:
-        signal = "NO_TRADE"
-
-    return {
-        "section": "NATURAL GAS",
-        "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "data_date": df.index[-1].date().isoformat(),
-        "prob_up": prob_up,
-        "prob_down": 1 - prob_up,
-        "signal": signal,
-        "cv_mean": float(np.mean(acc)),
-        "cv_std": float(np.std(acc)),
-    }
+if __name__ == "__main__":
+    main()

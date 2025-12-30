@@ -4,16 +4,16 @@
 
 NATURAL GAS
 -----------------------------------
-Run time (UTC): 2025-12-30 20:48:47 UTC
+Run time (UTC): 2025-12-30 20:57:01 UTC
 Data date     : 2025-12-30
 
-Prob UP       : 49.93%
-Prob DOWN     : 50.07%
+Prob UP       : 49.97%
+Prob DOWN     : 50.03%
 Signal        : NO_TRADE
 
 OIL
 -----------------------------------
-Run time (UTC): 2025-12-30 20:48:47 UTC
+Run time (UTC): 2025-12-30 20:57:02 UTC
 Data date     : 2025-12-30
 
 Prob UP       : 47.00%

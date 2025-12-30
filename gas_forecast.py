@@ -48,20 +48,21 @@ def run_gas_forecast():
         "cv_std": cv_std
     }
 
-    
-    def write_backtest_csv(df, model, features):
+
+def write_backtest_csv(df, model, features):
     # =======================
     # BACKTEST CSV
     # =======================
     probs = model.predict_proba(df[features])[:, 1]
-    
+
     bt = pd.DataFrame({
         "date": df.index,
         "prob_up": probs,
-        "signal": np.where(probs >= UP_THRESHOLD, "UP",
-                  np.where(probs <= DOWN_THRESHOLD, "DOWN", "NO_TRADE")),
+        "signal": np.where(
+            probs >= UP_THRESHOLD, "UP",
+            np.where(probs <= DOWN_THRESHOLD, "DOWN", "NO_TRADE")
+        ),
         "actual_up": df["Target"]
     })
-    
-    bt.to_csv("gas_backtest.csv", index=False)
 
+    bt.to_csv("gas_backtest.csv", index=False)

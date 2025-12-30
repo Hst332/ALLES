@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-CODE A – Oil Forecast (Brent + WTI + Spread)
+CODE A – Oil Forecast
+Brent + WTI + Spread
 """
 
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
-
 
 START_DATE = "2015-01-01"
 SYMBOL_BRENT = "BZ=F"
@@ -24,6 +24,7 @@ def run_oil_forecast():
 
     df["Brent_Trend"] = df["Brent"] > df["Brent"].rolling(20).mean()
     df["WTI_Trend"] = df["WTI"] > df["WTI"].rolling(20).mean()
+
     df["Spread"] = df["Brent"] - df["WTI"]
     df["Spread_Z"] = (
         (df["Spread"] - df["Spread"].rolling(60).mean())
@@ -51,10 +52,13 @@ def run_oil_forecast():
         signal = "NO_TRADE"
 
     return {
-        "asset": "OIL (BRENT+WTI)",
+        "section": "OIL",
         "run_time": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
         "data_date": last.name.date().isoformat(),
         "prob_up": prob_up,
         "prob_down": 1 - prob_up,
         "signal": signal,
+        "brent": float(last["Brent"]),
+        "wti": float(last["WTI"]),
+        "spread": float(last["Spread"]),
     }

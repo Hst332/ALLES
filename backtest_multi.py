@@ -1,6 +1,3 @@
-import os
-print("[DEBUG] Working directory:", os.getcwd())
-
 #!/usr/bin/env python3
 """
 Backtest: Gas, WTI, Brent

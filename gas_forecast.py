@@ -68,3 +68,13 @@ def run_gas_forecast():
         "cv_mean": float(np.mean(acc)),
         "cv_std": float(np.std(acc)),
     }
+    
+    def write_backtest_csv(df, model, features):
+    probs = model.predict_proba(df[features])[:, 1]
+    out = pd.DataFrame({
+        "date": df.index,
+        "prob_up": probs,
+        "target": df["Target"].values
+    })
+    out.to_csv("gas_backtest.csv", index=False)
+
